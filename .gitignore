@@ -1,0 +1,6 @@
+*.log
+.config-*
+.DS_Store
+node_modules
+.serverless
+.env

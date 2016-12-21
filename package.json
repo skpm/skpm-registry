@@ -1,0 +1,51 @@
+{
+  "name": "skpm-registry",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Serverless skpm registry",
+  "engine": "node 4.3.0",
+  "scripts": {
+    "lint": "standard",
+    "test": "mocha ./lib/**/spec.js",
+    "build": "serverless deploy --stage dev --debug",
+    "deploy": "serverless deploy --stage prod",
+    "nsp": "nsp check"
+  },
+  "author": "Mathieu Dutour <mathieu@dutour.me> (http://mathieu.dutour.me/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sketch-pm/skpm-registry/issues"
+  },
+  "homepage": "https://github.com/sketch-pm/skpm-registry#readme",
+  "dependencies": {
+    "github": "^3.1.1",
+    "semver": "^5.3.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.6.1",
+    "chai": "^3.5.0",
+    "injectr": "^0.5.1",
+    "mocha": "^3.0.2",
+    "nsp": "^2.6.1",
+    "serverless": "^1.4.0",
+    "sinon": "^1.17.5",
+    "sinon-chai": "^2.8.0",
+    "standard": "^7.1.2"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "context",
+      "before",
+      "beforeEach",
+      "after",
+      "afterEach",
+      "it",
+      "stub",
+      "spy",
+      "injectr",
+      "mocks",
+      "expect"
+    ]
+  }
+}

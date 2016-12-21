@@ -1,0 +1,8 @@
+machine:
+  node:
+    version: 4.3
+
+test:
+  pre:
+    - npm run nsp
+    - npm run lint
