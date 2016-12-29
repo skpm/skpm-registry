@@ -1,6 +1,8 @@
 module.exports = function Storage () {
   return {
-    get () {},
-    put () {}
+    find () {},
+    findOne () {},
+    update () {},
+    create () {}
   }
 }

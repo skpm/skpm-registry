@@ -1,21 +1,31 @@
 service: skpm-registry
 
+custom:
+  tableName: ${opt:stage, self:provider.stage}-plugins
+  domainName: ${opt:stage, self:provider.stage}-plugins-es
+
 provider:
   name: aws
   runtime: nodejs4.3
   stage: dev
   profile: perso
   region: eu-west-1
+  environment:
+    TABLE_NAME: ${self:custom.tableName}
+    DOMAIN_NAME: ${self:custom.domainName}
+    GITHUB_AUTH_TOKEN: ${env:GITHUB_AUTH_TOKEN}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
         - "dynamodb:*"
+        - "es:*"
         - "logs:CreateLogGroup"
         - "logs:CreateLogStream"
         - "logs:PutLogEvents"
         - "apigateway:POST"
       Resource:
-        - "arn:aws:dynamodb:*"
+        - arn:aws:dynamodb:*:*:table/${self:custom.tableName}
+        - arn:aws:es:*:*:domain/${self:custom.domainName}
         - "arn:aws:apigateway:*"
 
 package:
@@ -32,6 +42,20 @@ package:
     - "**/spec.js"
 
 functions:
+  packageSearch:
+    handler: lib/package/search/index.handler
+    events:
+      - http:
+          path: "registry"
+          method: get
+          cors: true
+          integration: lambda
+          request:
+            template:
+              application/json: >
+                {
+                  "q": "$input.params('q')"
+                }
   packageGet:
     handler: lib/package/get/index.handler
     events:
@@ -94,4 +118,8 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: 'plugins'
+        TableName: ${self:custom.tableName}
+    PluginsESDomain:
+      Type: 'AWS::Elasticsearch::Domain'
+      Properties:
+        DomainName: ${self:custom.domainName}

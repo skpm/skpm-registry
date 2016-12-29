@@ -1,15 +1,14 @@
 {
   "name": "skpm-registry",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Serverless skpm registry",
   "engine": "node 4.3.0",
   "scripts": {
     "lint": "standard",
     "test": "mocha ./lib/**/spec.js",
-    "build": "serverless deploy --stage dev --debug",
-    "deploy": "serverless deploy --stage prod",
-    "nsp": "nsp check"
+    "build": "serverless deploy --stage dev -v",
+    "deploy": "serverless deploy --stage prod"
   },
   "author": "Mathieu Dutour <mathieu@dutour.me> (http://mathieu.dutour.me/)",
   "license": "MIT",
@@ -26,7 +25,6 @@
     "chai": "^3.5.0",
     "injectr": "^0.5.1",
     "mocha": "^3.0.2",
-    "nsp": "^2.6.1",
     "serverless": "^1.4.0",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",

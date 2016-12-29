@@ -1,5 +1,3 @@
-export { default as AWS } from './aws'
 export { default as Context } from './context'
-export { default as Fetch } from './fetch'
 export { default as Storage } from './storage'
-export { default as Env } from './env'
+export { default as Github } from './github'
