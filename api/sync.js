@@ -1,7 +1,7 @@
 const GitHubApi = require('github')
-const Storage = require('../storage')
+const storage = require('./_storage')()
 
-module.exports.handler = function (event, context) {
+module.exports.handler = function (event, context, callback) {
   const github = new GitHubApi()
   try {
     github.authenticate({
@@ -9,13 +9,10 @@ module.exports.handler = function (event, context) {
       token: process.env.GITHUB_AUTH_TOKEN
     })
   } catch (error) {
-    return context.succeed({
-      success: false,
-      error
-    })
+		console.error(error)
+    callback(new Error('[401] Not authenticated.'))
+    return
   }
-
-  const storage = new Storage()
 
   function getContent (data) {
     return new Promise(function (resolve, reject) {
@@ -53,6 +50,9 @@ module.exports.handler = function (event, context) {
     return JSON.parse(res)
   }).then(function (plugins) {
     return plugins.reduce(function (p, plugin) {
+			if (!plugin.name) {
+				return p
+			}
       return p.then(function () {
         return storage.findOne(plugin.name)
       }).then(function (data) {
@@ -68,15 +68,14 @@ module.exports.handler = function (event, context) {
     }, Promise.resolve())
   })
   .then(function () {
-    return context.succeed({
-      success: true
-    })
+		callback(null, {
+			success: true
+		})
+    return
   })
   .catch(function (error) {
     console.log(error)
-    return context.succeed({
-      success: false,
-      error: error.message || error
-    })
+		callback(error)
+    return
   })
 }

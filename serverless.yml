@@ -2,30 +2,26 @@ service: skpm-registry
 
 custom:
   tableName: ${opt:stage, self:provider.stage}-plugins
-  domainName: ${opt:stage, self:provider.stage}-plugins-es
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev
   profile: perso
   region: eu-west-1
   environment:
     TABLE_NAME: ${self:custom.tableName}
-    DOMAIN_NAME: ${self:custom.domainName}
     GITHUB_AUTH_TOKEN: ${env:GITHUB_AUTH_TOKEN}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
         - "dynamodb:*"
-        - "es:*"
         - "logs:CreateLogGroup"
         - "logs:CreateLogStream"
         - "logs:PutLogEvents"
         - "apigateway:POST"
       Resource:
         - arn:aws:dynamodb:*:*:table/${self:custom.tableName}
-        - arn:aws:es:*:*:domain/${self:custom.domainName}
         - "arn:aws:apigateway:*"
 
 package:
@@ -43,24 +39,27 @@ package:
 
 functions:
   packageSearch:
-    handler: lib/package/search/index.handler
+    handler: api/search.handler
     events:
       - http:
-          path: "registry"
+          path: /registry
           method: get
           cors: true
           integration: lambda
           request:
+            parameters:
+              querystrings:
+                q: true
             template:
               application/json: >
                 {
                   "q": "$input.params('q')"
                 }
   packageGet:
-    handler: lib/package/get/index.handler
+    handler: api/get.handler
     events:
       - http:
-          path: "registry/{name}"
+          path: /registry/{name}
           method: get
           cors: true
           integration: lambda
@@ -71,10 +70,10 @@ functions:
                   "name": "$input.params('name')"
                 }
   packagePut:
-    handler: lib/package/put/index.handler
+    handler: api/put.handler
     events:
       - http:
-          path: "registry/{name}"
+          path: /registry/{name}
           method: put
           cors: true
           integration: lambda
@@ -86,20 +85,12 @@ functions:
                   "body": "$util.escapeJavaScript($input.json('$'))"
                 }
   packageSync:
-    handler: lib/package/sync/index.handler
+    handler: api/sync.handler
     timeout: 300
     events:
-      - http:
-          path: "registry/sync"
-          method: post
-          cors: true
-          integration: lambda
-          request:
-            template:
-              application/json: >
-                {
-                  "body": "$util.escapeJavaScript($input.json('$'))"
-                }
+      - schedule:
+          rate: cron(0 12 * * ? *)
+          enabled: false
 
 resources:
   Resources:
@@ -119,7 +110,3 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:custom.tableName}
-    PluginsESDomain:
-      Type: 'AWS::Elasticsearch::Domain'
-      Properties:
-        DomainName: ${self:custom.domainName}

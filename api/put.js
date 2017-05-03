@@ -1,6 +1,6 @@
 const semver = require('semver')
 const GitHubApi = require('github')
-const Storage = require('../storage')
+const storage = require('./_storage')()
 
 function checkIfCollaborator (github, data) {
   return new Promise(function (resolve, reject) {
@@ -24,19 +24,16 @@ function getCurrentUser (github) {
   })
 }
 
-module.exports.handler = function (event, context) {
+module.exports.handler = function (event, context, callback) {
   const name = decodeURIComponent(event.name)
   var pkg
   try {
     pkg = JSON.parse(event.body)
   } catch (error) {
-    return context.succeed({
-      success: false,
-      error
-    })
+		console.error(error)
+		callback('[400] Error while parsing body: ' + error.message)
+    return
   }
-
-  const storage = new Storage()
 
   const github = new GitHubApi()
   github.authenticate({
@@ -57,16 +54,12 @@ module.exports.handler = function (event, context) {
     if (data) {
       action = 'update'
       if (data.repo !== pkg.repo) {
-        return context.succeed({
-          success: false,
-          error: new Error('A plugin with the same name has already been published.')
-        })
+				callback(new Error('[400] A plugin with the same name has already been published.'))
+        return
       }
       if (data.versions && data.versions.some(v => semver.gte(v.tag, pkg.tag))) {
-        return context.succeed({
-          success: false,
-          error: new Error('A version with a higher tag was already published.')
-        })
+				callback(new Error('[400] A version with a higher tag was already published.'))
+        return
       }
     }
 
@@ -87,15 +80,14 @@ module.exports.handler = function (event, context) {
     })
   })
   .then(function () {
-    return context.succeed({
-      success: true
-    })
+		callback(null, {
+			success: true
+		})
+    return
   })
   .catch(function (error) {
     console.log(error)
-    return context.succeed({
-      success: false,
-      error: error.message || error
-    })
+		callback(error)
+    return
   })
 }
