@@ -67,7 +67,8 @@ module.exports.handler = function (event, context, callback) {
     versions.push({
       tag: pkg.tag,
       url: pkg.url,
-      publishedAt: new Date()
+      publishedAt: new Date(),
+			compatibleVersion: pkg.compatibleVersion
     })
 
     return storage[action](name, {
